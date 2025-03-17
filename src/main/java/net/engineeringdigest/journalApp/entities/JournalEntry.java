@@ -1,16 +1,25 @@
 package net.engineeringdigest.journalApp.entities;
 
 
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 
-@Getter
-@Setter
+import lombok.NoArgsConstructor;
+import lombok.NonNull;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
+
+
+@Document(collection = "journal_entries")
+@Data
+@NoArgsConstructor
 public class JournalEntry {
 
+    @Id
     private Long id;
-
+    @NonNull
     private String title;
     private String content;
+    private LocalDateTime date;
 }
