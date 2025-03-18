@@ -7,11 +7,11 @@ import net.engineeringdigest.journalApp.repository.UserRepository;
 import net.engineeringdigest.journalApp.service.JournalEntryServices;
 import net.engineeringdigest.journalApp.service.UserServices;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
-import java.sql.SQLOutput;
-import java.time.LocalDateTime;
+
 import java.util.*;
 
 
@@ -37,22 +37,8 @@ public class JournalController {
     }
 
     @PostMapping("/{username}")
-    @Transactional
-    public boolean addJournalEntries(@RequestBody JournalEntry entry,@PathVariable String username){
-
-        try{
-            User  user = userServices.findByUsername(username);
-            entry.setDate(LocalDateTime.now());
-            JournalEntry saved=  journalEntryServices.saveEntity(entry);
-            user.getEntries().add(saved);
-            user.setUserName(null);
-            userServices.saveUser(user);
-            return true;
-        }catch(Exception e){
-            System.out.println(e);
-            System.out.println("Exception Occurred");
-        }
-        return false;
+    public ResponseEntity addJournalEntries(@RequestBody JournalEntry entry, @PathVariable String username){
+        return journalEntryServices.saveEntity(entry,username);
     }
 
     @GetMapping("/id/{id}")
