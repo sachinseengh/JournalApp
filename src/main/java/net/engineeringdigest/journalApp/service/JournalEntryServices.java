@@ -1,20 +1,23 @@
 package net.engineeringdigest.journalApp.service;
 
 
-import ch.qos.logback.classic.joran.JoranConfigurator;
 import net.engineeringdigest.journalApp.entities.JournalEntry;
 import net.engineeringdigest.journalApp.entities.User;
 import net.engineeringdigest.journalApp.repository.JournalEntryRepository;
-import net.engineeringdigest.journalApp.repository.UserRepository;
+import org.bson.types.ObjectId;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class JournalEntryServices {
@@ -26,6 +29,10 @@ private JournalEntryRepository journalEntryRepository;
 private UserServices userServices;
 
 
+
+@Autowired
+private PasswordEncoder passwordEncoder;
+
 @Transactional
 public ResponseEntity saveEntity(JournalEntry entry, String username){
 
@@ -35,7 +42,9 @@ public ResponseEntity saveEntity(JournalEntry entry, String username){
         JournalEntry saved= journalEntryRepository.save(entry);
         user.getEntries().add(saved);
 //        user.setUserName(null);
-        userServices.saveUser(user);
+        //This method again encode the password so we have to decode because currently it has the encrypted one and if i send this it will encrypt it again so decrypt it and send for encryption again in the userservice save method
+
+        userServices.updateUser(user);
         return new ResponseEntity(saved, HttpStatus.CREATED);
 
     }catch(Exception e){
@@ -45,31 +54,47 @@ public ResponseEntity saveEntity(JournalEntry entry, String username){
 
 }
 
-public List<JournalEntry> getAllEntries(){
-   return journalEntryRepository.findAll();
+
+public JournalEntry findById(ObjectId id){
+
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    User user = userServices.findByUsername(authentication.getName());
+    List<JournalEntry> collect = user.getEntries().stream().filter(x->x.getId().equals(id)).collect(Collectors.toList());
+
+    if(!collect.isEmpty()){
+        Optional<JournalEntry> journalEntries = journalEntryRepository.findById(id);
+        if(journalEntries.isPresent()){
+            return  journalEntries.get();
+        }
+    }
+    return null;
 }
 
-public JournalEntry findById(Long id){
-    JournalEntry entry = journalEntryRepository.findById(id).orElse(null);
-    return entry;
-}
+public Optional<JournalEntry> updateById(ObjectId id,JournalEntry newEntry) {
 
-public JournalEntry updateById(Long id,JournalEntry newEntry){
+    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    User user = userServices.findByUsername(authentication.getName());
+    List<JournalEntry> collect = user.getEntries().stream().filter(x -> x.getId().equals(id)).collect(Collectors.toList());
 
-    JournalEntry entry = journalEntryRepository.findById(id).orElse(null);
+    Optional<JournalEntry> entry = null;
+    if (!collect.isEmpty()) {
 
-    if(newEntry !=null){
-        entry.setTitle(newEntry.getTitle() !=null && !newEntry.getTitle().equals("")?newEntry.getTitle():entry.getTitle());
+        entry = Optional.ofNullable(findById(id));
 
-        entry.setContent(newEntry.getContent() !=null && !newEntry.getContent().equals("")?newEntry.getContent():entry.getContent());
+        if (!(entry==null)) {
+            JournalEntry old = entry.get();
+            old.setTitle(newEntry.getTitle() != null && !newEntry.getTitle().equals("") ? newEntry.getTitle() : old.getTitle());
+
+            old.setContent(newEntry.getContent() != null && !newEntry.getContent().equals("") ? newEntry.getContent() : old.getContent());
+
+            journalEntryRepository.save(old);
+        }
     }
 
-    journalEntryRepository.save(entry);
     return entry;
-
 }
 
-public boolean deleteById(Long id){
+public boolean deleteById(ObjectId id){
     JournalEntry entry = journalEntryRepository.findById(id).orElse(null);
 
     if(entry != null){

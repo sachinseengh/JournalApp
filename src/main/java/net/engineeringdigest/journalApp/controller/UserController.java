@@ -5,40 +5,40 @@ import net.engineeringdigest.journalApp.entities.User;
 import net.engineeringdigest.journalApp.repository.UserRepository;
 import net.engineeringdigest.journalApp.service.UserServices;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/users")
+@RequestMapping("/user")
 public class UserController {
 
     @Autowired
     private UserServices userServices;
 
-    @GetMapping
-    public List<User> getAllUsers(){
-        return userServices.getAllUser();
+    @PutMapping()
+    public ResponseEntity<?> updateUserByUsername(@RequestBody User user){
+        Authentication authentication= SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        User userIndb = userServices.findByUsername(username);
+        if(userIndb != null){
+            userIndb.setUserName(user.getUserName());
+            userIndb.setPassword(user.getPassword());
+            userServices.saveUser(userIndb);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user){
-        return userServices.saveUser(user);
-    }
+    @DeleteMapping()
+    public ResponseEntity<User> deleteUserByUsername(){
 
-    @GetMapping("/{id}")
-    public ResponseEntity<User> getUserById(@PathVariable Long id){
-        return userServices.getUserById(id);
-    }
-
-    @PutMapping("/{id}")
-    public ResponseEntity<User> updateUserById(@PathVariable Long id,@RequestBody User user){
-        return userServices.updateById(id,user);
-    }
-
-    @DeleteMapping("/{id}")
-    public ResponseEntity<User> deleteUserById(@PathVariable Long id){
-        return userServices.deleteUserById(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String username = authentication.getName();
+        return userServices.deleteUserByUsername(username);
     }
 }
