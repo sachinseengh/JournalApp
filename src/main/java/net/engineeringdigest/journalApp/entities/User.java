@@ -1,7 +1,9 @@
 package net.engineeringdigest.journalApp.entities;
 
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.NonNull;
 import org.bson.types.ObjectId;
 import org.springframework.data.annotation.Id;
@@ -14,6 +16,8 @@ import java.util.List;
 
 @Document(collection ="users")
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class User {
 
     @Id
@@ -25,6 +29,11 @@ public class User {
 
     @NonNull
     private String password;
+
+
+    private String email;
+
+    private Boolean sentimentAnalysis;
 
     @DBRef
     private List<JournalEntry> entries = new ArrayList<>();
