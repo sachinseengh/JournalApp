@@ -28,8 +28,6 @@ private JournalEntryRepository journalEntryRepository;
 @Autowired
 private UserServices userServices;
 
-
-
 @Autowired
 private PasswordEncoder passwordEncoder;
 

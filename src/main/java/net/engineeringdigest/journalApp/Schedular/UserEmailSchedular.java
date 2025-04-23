@@ -42,7 +42,6 @@ public class UserEmailSchedular {
 //
 //           String sentiment = sentimentAnalysisService.getSentiment(entry);
 
-
            List<Sentiment> sentiments = entries.stream().filter(x->x.getDate().isAfter(LocalDateTime.now().minus(7, ChronoUnit.DAYS))).map(x->x.getSentiment()).collect(Collectors.toList());
 
            Map<Sentiment, Integer> sentimentCounts = new HashMap<>();

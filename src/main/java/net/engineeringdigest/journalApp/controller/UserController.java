@@ -3,7 +3,6 @@ package net.engineeringdigest.journalApp.controller;
 
 import net.engineeringdigest.journalApp.api.response.WeatherResponse;
 import net.engineeringdigest.journalApp.entities.User;
-import net.engineeringdigest.journalApp.repository.UserRepository;
 import net.engineeringdigest.journalApp.service.UserServices;
 import net.engineeringdigest.journalApp.service.WeatherService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,11 +12,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @RequestMapping("/user")
 public class UserController {
+
+
+
 
     @Autowired
     private UserServices userServices;
@@ -61,4 +61,6 @@ public class UserController {
 
         return new ResponseEntity<>("Hi " + authentication.getName(),HttpStatus.OK);
     }
+
+
 }
